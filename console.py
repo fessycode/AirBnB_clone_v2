@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This is the entry point of the interprerter"""
+"""This is the entry point of interprerter"""
 
 
 import cmd
