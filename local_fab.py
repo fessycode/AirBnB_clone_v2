@@ -2,7 +2,7 @@
 """
 Fabric script to generates a .tgz archive from the
 contents of the web_static folder of AirBnB Clone repo, using
-the function `do_pack`.
+the function `do_pack`
 
 and does other stuffs.
 """
