@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
 A Flask web application that lists states and
-allows viewing individual states
+allows viewing individual states.
 """
 
 from flask import Flask, render_template
