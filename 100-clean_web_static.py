@@ -1,96 +1,33 @@
 #!/usr/bin/python3
 """
-Fabric script to generates a .tgz archive from the
-contents of the web_static folder of AirBnB Clone repo, using
-the function `do_pack`.
-
-and does other stuffs.
+Deletes out-of-date archives
+fab -f 100-clean_web_static.py do_clean:number=2
+    -i ssh-key -u ubuntu > /dev/null 2>&1
 """
 
-from fabric.api import local, env, run, put
-from datetime import datetime
 import os
+from fabric.api import *
 
-env.hosts = ['52.87.153.4', '100.25.137.85']
-env.user = 'ubuntu'
-
-
-def do_pack():
-    """Compress the contents of web_static"""
-
-    #  create `versions` dir if not exists
-    local('mkdir -p versions')
-
-    #  create compressed tgz file
-    time_stamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    path = 'versions/web_static_' + time_stamp + '.tgz'
-    result = local('tar -cvzf {} web_static/'.format(path))
-    if result.succeeded:
-        return path
-    else:
-        return None
-
-
-def do_deploy(archive_path):
-    """distributes an archive to env.hosts web servers"""
-
-    #  if empty argument passed
-    if not os.path.exists(archive_path):
-        return False
-
-    basename = os.path.basename(archive_path)
-    path = basename.replace('.tgz', '')
-    path = '/data/web_static/releases/{}'.format(path)
-
-    #  upload archive to server
-    put(archive_path, '/tmp/')
-    run('mkdir -p {}'.format(path))
-    run('tar -xvzf /tmp/{} -C {}'.format(basename, path))
-    run('mv {}/web_static/* {}'.format(path, path))
-    run('rm -rf {}/web_static/'.format(path))
-    run('rm /data/web_static/current')
-    run('ln -s {} /data/web_static/current'.format(path))
-    return True
-
-
-def deploy():
-    """creates and distributes an archive to web servers"""
-    path = do_pack()
-    if path is None:
-        return False
-    return do_deploy(path)
+env.hosts = ['18.233.62.121', '54.144.146.4']
 
 
 def do_clean(number=0):
-    """ Deletes out-of-date archives."""
+    """Delete out-of-date archives.
+    Args:
+        number (int): The number of archives to keep.
+    If number is 0 or 1, keeps only the most recent archive. If
+    number is 2, keeps the most and second-most recent archives,
+    etc.
+    """
+    number = 1 if int(number) == 0 else int(number)
 
-    #  check if path `versions/` exists
-    if not os.path.exists('versions/'):
-        return
+    archives = sorted(os.listdir("versions"))
+    [archives.pop() for i in range(number)]
+    with lcd("versions"):
+        [local("rm ./{}".format(a)) for a in archives]
 
-    #  resolve least number of archives to keep
-    if number == 0:
-        number = 1
-
-    #  capture list of archives : local
-    archives = local('ls -t versions/', capture=True)
-    archives = archives.split('\n')
-
-    archives = archives[int(number):]
-
-    #  remove local archives
-    for archive in archives:
-        local('rm versions/{}'.format(archive))
-
-    #  capture list of archives : remote
-    archives = run('ls -t /data/web_static/releases')
-    archives = archives.split('\n')
-
-    archives = archives[int(number):]
-
-    if 'test' in archives:
-        archives.remove('test')
-
-    for archive in archives:
-        run('rm -rf /data/web_static/releases/{}'.format(
-            archive))
+    with cd("/data/web_static/releases"):
+        archives = run("ls -tr").split()
+        archives = [a for a in archives if "web_static_" in a]
+        [archives.pop() for i in range(number)]
+        [run("rm -rf ./{}".format(a)) for a in archives]
