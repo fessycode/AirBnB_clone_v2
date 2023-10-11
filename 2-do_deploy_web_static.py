@@ -9,6 +9,7 @@ from os.path import exists
 env.hosts = ['18.233.62.121', '54.144.146.4']
 
 
+
 def do_deploy(archive_path):
     """distributes an archive to the web servers"""
     if exists(archive_path) is False:

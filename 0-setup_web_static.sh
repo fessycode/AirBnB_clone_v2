@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 #!/usr/bin/env bash
 # script that sets up web servers for the deployment of web_static
 sudo apt-get update
@@ -25,3 +27,4 @@ sudo chown -R ubuntu:ubuntu /data/
 sudo sed -i '/listen 80 default_server/a location /hbnb_static { alias /data/web_static/current/;}' /etc/nginx/sites-enabled/default
 
 sudo service nginx restart
+>>>>>>> 1a28e24a800fbe3a0cab0ffb12b215ba58412daf
